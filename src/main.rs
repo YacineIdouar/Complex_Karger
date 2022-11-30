@@ -1,6 +1,9 @@
 use rand::Rng;
+use std::fs::File;
+use std::io::prelude::*;
 
-fn dot (matrice : &Vec <Vec<i32>>) ->String {
+// Fonction permettant l'affichage des graphs !
+fn dot_matrice (matrice : &Vec <Vec<i32>>) ->String {
     let mut graph = String::new();
     graph = format! ("{}{}",graph,String::from("graph {"));
     for i in 0..matrice.len() {
@@ -14,7 +17,23 @@ fn dot (matrice : &Vec <Vec<i32>>) ->String {
     graph
 }
 
-// Fin initialisation !!
+// Fonction d'affichage des graphs représentés 
+
+fn dot_liste (liste_adj : &mut Vec<Vec<i32>>)-> String{
+    let mut graph = String::new();
+    graph = format! ("{}{}",graph,String::from("graph {"));
+    for i in 0..liste_adj.len() {
+        for j in 0..liste_adj[i].len(){
+                if liste_adj[i][j] != -1 && (liste_adj[i][j]) as usize > i{
+               graph = format!("{}{}{}{}{}",graph ,i.to_string(),String::from(" -- "), liste_adj[i][j].to_string(),String::from(" \n"));
+                }
+        }
+    }
+    graph = format! ("{}{}",graph,String::from("}"));
+    graph
+}
+
+// Initialisation de la matrice !!
 fn init_matrice(matrice : &mut Vec <Vec<i32>>, liste_arete : &mut Vec<(i32,i32)>, n : usize) -> () {
     for i in 0..n {
         for j in (i+1)..n {
@@ -33,7 +52,7 @@ fn init_matrice(matrice : &mut Vec <Vec<i32>>, liste_arete : &mut Vec<(i32,i32)>
 }
 
 // Fonction de contraction  sur la matrice d'adjacence 
-fn contraction (matrice : &mut Vec <Vec<i32>>, liste_arete : &mut Vec<(i32,i32)>, sommet1 : usize, sommet2 : usize) -> (){
+fn contraction_matrice (matrice : &mut Vec <Vec<i32>>, liste_arete : &mut Vec<(i32,i32)>, sommet1 : usize, sommet2 : usize) -> (){
    // Retrait des arete de la liste des aretes 
         liste_arete.retain(|(x,y)| (!(*x==sommet2.try_into().unwrap() || *y == sommet2.try_into().unwrap())));
    
@@ -57,10 +76,126 @@ fn contraction (matrice : &mut Vec <Vec<i32>>, liste_arete : &mut Vec<(i32,i32)>
     
 }
 
+// Définiton d'une fonction size de la matrice d'adjacence
+
+    fn taille (matrice : &Vec <Vec<i32>>)-> usize {
+        let mut size = 0;
+        for i in 0..matrice.len(){
+            if matrice[i][i] == 0{
+                size+=1;
+            }
+        }
+        size
+    }
+
+
+    /* Réalisationde la deuxième implémentation de la matrice avec des listes d'adjacence ! */
+
+    // Initialisation de la liste d'adjacence  
+    fn initListeAdj(liste_adj : &mut Vec<Vec<i32>>) -> (){
+
+        // On parcours tous les noeuds !
+        for i in 0..liste_adj.len(){
+            // On choisit un nombre d'aretes aléatoire !
+            let nb_arete:i32 =rand::thread_rng().gen_range(1..liste_adj.len().try_into().unwrap()) - (liste_adj[i].len() as i32);
+
+            for _ in 0..nb_arete  {
+                let mut sommet_arrive = rand::thread_rng().gen_range(0..liste_adj.len().try_into().unwrap()); // On choisit le second sommet
+                // On vérifie que le sommet ne pointe pas sur lui meme et que le sommet sélectionné n'est pas déja dans la liste
+                let mut iter = liste_adj[i].iter();
+                while sommet_arrive == i || (iter.find (|&&x| x == sommet_arrive.try_into().unwrap()) != None){
+                       
+                        iter = liste_adj[i].iter();
+                        sommet_arrive = rand::thread_rng().gen_range(0..liste_adj.len());
+                }   
+                liste_adj[i].push(sommet_arrive.try_into().unwrap());   
+                liste_adj[sommet_arrive].push(i.try_into().unwrap());
+            }
+        }
+    }
+
+
+
+    // Contraction des listes d'adjacences !
+    fn contraction_liste (liste_adj : &mut Vec<Vec<i32>>, sommet1 : usize, sommet2 : usize) -> (){
+
+            println!("Cotraction de {},{}",sommet1,sommet2);
+
+        // Nettoyage de la première liste O(n)
+        let mut i : usize = 0;
+        while i < liste_adj[sommet1].len(){
+            if liste_adj[sommet1][i] == sommet2.try_into().unwrap(){
+                liste_adj[sommet1].remove(i);
+            }else{
+                i+=1;
+            }
+        }
+
+        // Fusion des deux listes ! O(n)
+        for i in 0..liste_adj[sommet2].len() {
+
+            let val = liste_adj[sommet2][i];
+
+            if   val!= sommet1.try_into().unwrap(){
+                liste_adj[sommet1].push(val);
+                for j in 0.. liste_adj[val as usize].len() {
+                    if liste_adj[val as usize][j] == sommet2.try_into().unwrap(){
+                        liste_adj[val as usize][j] = sommet1.try_into().unwrap();
+                    }
+                }
+            }
+            // On supprime la liste en mettant un valeur différente 
+        }
+        
+        // On met à jour les indices de la liste ! O(n)
+        for i in 0..liste_adj.len(){
+            for j in 0..liste_adj[i].len()  {
+                    if liste_adj[i][j] > sommet2.try_into().unwrap(){
+                        liste_adj[i][j] -=1; // On décrémente tous les indices > au sommet supprimé !
+                    }
+            }   
+        }
+       
+        liste_adj.remove(sommet2);
+
+    }
+
+    fn krager_liste_adj (liste_adj : &mut Vec<Vec<i32>>)->(){
+
+       
+            
+        while liste_adj.len() > 2{
+
+            for i in 0..liste_adj.len(){
+                println!("{:?}",liste_adj[i]);
+            }
+
+            // Choix des deux sommet à contrater !
+            let mut sommet1 = rand::thread_rng().gen_range(0..liste_adj.len());
+
+            
+            let mut indice_sommet2 =  rand::thread_rng().gen_range(0..liste_adj[sommet1].len()) as usize;
+            let sommet2 = liste_adj[sommet1][indice_sommet2] as usize;
+            
+
+            // Appel de la fonction de contraction 
+
+            contraction_liste(liste_adj, sommet1, sommet2);
+        }
+
+    }
+
+
 
 fn main() {
+    
     let n : usize = 15;
-    let mut matrice = vec![vec![0;n];n];
+    let mut file = match File::open("print.gv"){
+        Ok(file) => file,
+        Err(_) => panic!("NO file found"),
+    };
+    // Gestionde la matrice !
+    /* let mut matrice = vec![vec![0;n];n];
     let mut liste_arete : Vec<(i32,i32)> = Vec::new();
     init_matrice(&mut matrice, &mut liste_arete, n);
 
@@ -70,25 +205,39 @@ fn main() {
     println!("{:?}",liste_arete);
 
     println!("Le graphe dot avant : \n {}",dot(&matrice));
-    contraction(&mut matrice, &mut liste_arete, 0, 2);
 
-     println!("Après contraction !");
+    while taille (&matrice) > 2  {
+        let tirage = rand::thread_rng().gen_range(0..liste_arete.len());
+        let (sommet1,sommet2) = liste_arete[tirage];
+        contraction(&mut matrice, &mut liste_arete, sommet1.try_into().unwrap(), sommet2.try_into().unwrap());  
+    }
+
+    // fin de la contraction
+
+    println!("Sorie de l'algorithme !!");
 
     for i in 0..n{
         println!("{:?}",matrice[i]);
     }
     println!("{:?}",liste_arete);
 
-    println!("Le graphe dot après : \n{}",dot(&matrice));
+    println!("Le graphe dot après : \n {}",dot(&matrice));*/
 
-    contraction(&mut matrice, &mut liste_arete, 0, 3);
 
-    println!("Après contraction !");
+    // Gestion de la liste d'adjcence !
+    let mut liste_adj : Vec<Vec<i32>> = vec![vec![];n];
 
-   for i in 0..n{
-       println!("{:?}",matrice[i]);
-   }
-   println!("{:?}",liste_arete);
+    initListeAdj(&mut liste_adj);
 
-   println!("Le graphe dot après : \n{}",dot(&matrice));
+    println!("{}",dot_liste(&mut liste_adj));
+
+    krager_liste_adj(&mut liste_adj);
+    
+
+    println!("{}",dot_liste(&mut liste_adj));
+
+
+    
 }
+
+/*Idée à devlopper => Ercire les différents graphe dans un fichier pour les print ! */
