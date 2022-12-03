@@ -217,7 +217,7 @@ fn krager_matrice_partiel (matrice : &mut Vec <Vec<i32>>,liste_arete : &mut Vec<
 
 // ALgorithme de Karger stein
 
-    fn  karger_Stein(matrice : Vec <Vec<i32>>,liste_arete : Vec<(i32,i32)>)-> (Vec <Vec<i32>>,usize){
+    fn  karger_Stein(matrice : &mut Vec <Vec<i32>>,liste_arete : &mut Vec<(i32,i32)>)-> (Vec <Vec<i32>>,usize){
         if taille(&matrice) <= 6 {
             let mut matrice_fin = matrice.clone();
             let mut liste_arete_fin = liste_arete.clone();
@@ -236,15 +236,15 @@ fn krager_matrice_partiel (matrice : &mut Vec <Vec<i32>>,liste_arete : &mut Vec<
           krager_matrice_partiel(&mut matrice1, &mut liste_arete1, number_contration);
           krager_matrice_partiel(&mut matrice2, &mut liste_arete2, number_contration);
           // Rappel de la fonction sur les matrice contracté
-          let (matrice_res1,taille1) = karger_Stein(matrice1, liste_arete1);
-          let (matrce_res2,taille2) = karger_Stein(matrice2,  liste_arete2);
+          let (matrice_res1,taille1) = karger_Stein(&mut matrice1, &mut liste_arete1);
+          let (matrice_res2,taille2) = karger_Stein(&mut matrice2, &mut liste_arete2);
 
           // On retourne la matrice avec la plus petite taille !
           if taille1 < taille2 {
-            return (matrce_res2,taille2);
+            return (matrice_res1,taille1);
           }
 
-          (matrice_res1,taille1)     
+          (matrice_res2,taille2)     
 
     }
 
@@ -254,18 +254,14 @@ fn krager_matrice_partiel (matrice : &mut Vec <Vec<i32>>,liste_arete : &mut Vec<
 
 fn main() {
     
-    let n : usize = 45;
+    let n : usize = 30;
     
     // Gestionde la matrice !
     let mut matrice = vec![vec![0;n];n];// Matrice du début !
     let mut liste_arete : Vec<(i32,i32)> = Vec::new(); // Liste d'arete du début 
 
-    
-
-
     init_matrice(&mut matrice, &mut liste_arete, n);
 
-    // On crée des clones de la matrice et de la liste
     let mut matrice2 = matrice.clone();
     let mut liste_arete2 = liste_arete.clone();
 
@@ -278,9 +274,9 @@ fn main() {
 
     println!("Le graphe dot avant : \n {}",dot_matrice(&matrice));
 
-    println!("Sorie de l'algorithme de krager Stein !!");
+    println!("Sorie de l'algorithme !!");
 
-    (matrice_res,min) = karger_Stein(matrice,liste_arete);
+    (matrice_res,min) = karger_Stein(&mut matrice, &mut liste_arete);
     
 
     println!("Le graphe dot après : \n {}",dot_matrice(&matrice_res));
@@ -292,7 +288,6 @@ fn main() {
     (matrice_res2,min2) = karger_iter_matrice(matrice2, liste_arete2);
 
     println!("Le graphe dot après : \n {}",dot_matrice(&matrice_res2));
-
 
 
     // Gestion de la liste d'adjcence !
