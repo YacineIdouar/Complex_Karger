@@ -1,4 +1,6 @@
+
 use rand::Rng;
+
 
 // Fonction permettant l'affichage des graphs !
 fn dot_matrice (matrice : &Vec <Vec<i32>>) ->String {
@@ -184,13 +186,9 @@ fn contraction_matrice (matrice : &mut Vec <Vec<i32>>, liste_arete : &mut Vec<(i
 
     }
 
-    fn krager_liste_adj (liste_adj : &mut Vec<Vec<i32>>)->(){
-
-       
+    fn krager_liste_adj (liste_adj : &mut Vec<Vec<i32>>)->(){     
             
         while liste_adj.len() > 2{
-
-
             // Choix des deux sommet à contrater !
             let sommet1 = rand::thread_rng().gen_range(0..liste_adj.len());
 
@@ -205,6 +203,50 @@ fn contraction_matrice (matrice : &mut Vec <Vec<i32>>, liste_arete : &mut Vec<(i
         }
 
     }
+
+// Implémentation de l'algorithme de karger_Sein 
+
+fn krager_matrice_partiel (matrice : &mut Vec <Vec<i32>>,liste_arete : &mut Vec<(i32,i32)>,nb_con : usize) -> (){
+    // Tant que la taille de la matrice > 2 on réitère 
+    while taille (&matrice) > nb_con {
+        let tirage = rand::thread_rng().gen_range(0..liste_arete.len());
+        let (sommet1,sommet2) = liste_arete[tirage];
+        contraction_matrice(matrice,liste_arete, sommet1.try_into().unwrap(), sommet2.try_into().unwrap());  
+    }
+}
+
+// ALgorithme de Karger stein
+
+    fn  karger_Stein(matrice : &mut Vec <Vec<i32>>,liste_arete : &mut Vec<(i32,i32)>)-> (Vec <Vec<i32>>,usize){
+        if taille(&matrice) <= 6 {
+            krager_matrice(matrice, liste_arete);
+            return (*matrice,liste_arete.len());
+        }
+        
+          let number_contration = (1 as f32 + taille(&matrice) as f32/1.41) as usize + 1;
+          // Matrice1 pour le premier calcul
+          let mut matrice1 = matrice.clone();
+          let mut liste_arete1 = liste_arete.clone();
+          // Matrice2 pour le second calcul
+          let mut matrice2 = matrice.clone();
+          let mut liste_arete2 = liste_arete.clone();
+          // Realisation de la contraction partiel
+          krager_matrice_partiel(&mut matrice1, &mut liste_arete1, number_contration);
+          krager_matrice_partiel(&mut matrice2, &mut liste_arete2, number_contration);
+          // Rappel de la fonction sur les matrice contracté
+          let (matrice_res1,taille1) = karger_Stein(&mut matrice1, &mut liste_arete1);
+          let (matrce_res2,taille2) = karger_Stein(&mut matrice2, &mut liste_arete2);
+
+          // On retourne la matrice avec la plus petite taille !
+          if taille1 < taille2 {
+            return (matrce_res2,taille2);
+          }
+
+          (matrice_res1,taille1)     
+
+    }
+
+
 
 
 
@@ -224,17 +266,13 @@ fn main() {
     for i in 0..n{
         println!("{:?}",matrice[i]);
     }
-    println!("{:?}",liste_arete);
 
     println!("Le graphe dot avant : \n {}",dot_matrice(&matrice));
 
-    krager_matrice(&mut matrice, &mut liste_arete);
-    // fin de la contraction
-
     println!("Sorie de l'algorithme !!");
 
-    (matrice_res,min) = karger_iter_matrice(matrice, liste_arete);
-
+    (matrice_res,min) = karger_Stein(&mut matrice, &mut liste_arete);
+    
 
     println!("Le graphe dot après : \n {}",dot_matrice(&matrice_res));
 
