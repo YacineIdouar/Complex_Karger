@@ -217,10 +217,12 @@ fn krager_matrice_partiel (matrice : &mut Vec <Vec<i32>>,liste_arete : &mut Vec<
 
 // ALgorithme de Karger stein
 
-    fn  karger_Stein(matrice : &mut Vec <Vec<i32>>,liste_arete : &mut Vec<(i32,i32)>)-> (Vec <Vec<i32>>,usize){
+    fn  karger_Stein(matrice : Vec <Vec<i32>>,liste_arete : Vec<(i32,i32)>)-> (Vec <Vec<i32>>,usize){
         if taille(&matrice) <= 6 {
-            krager_matrice(matrice, liste_arete);
-            return (*matrice,liste_arete.len());
+            let mut matrice_fin = matrice.clone();
+            let mut liste_arete_fin = liste_arete.clone();
+            krager_matrice(&mut matrice_fin, &mut liste_arete_fin);
+            return (matrice_fin,liste_arete_fin.len());
         }
         
           let number_contration = (1 as f32 + taille(&matrice) as f32/1.41) as usize + 1;
@@ -234,8 +236,8 @@ fn krager_matrice_partiel (matrice : &mut Vec <Vec<i32>>,liste_arete : &mut Vec<
           krager_matrice_partiel(&mut matrice1, &mut liste_arete1, number_contration);
           krager_matrice_partiel(&mut matrice2, &mut liste_arete2, number_contration);
           // Rappel de la fonction sur les matrice contracté
-          let (matrice_res1,taille1) = karger_Stein(&mut matrice1, &mut liste_arete1);
-          let (matrce_res2,taille2) = karger_Stein(&mut matrice2, &mut liste_arete2);
+          let (matrice_res1,taille1) = karger_Stein(matrice1, liste_arete1);
+          let (matrce_res2,taille2) = karger_Stein(matrice2,  liste_arete2);
 
           // On retourne la matrice avec la plus petite taille !
           if taille1 < taille2 {
@@ -252,13 +254,20 @@ fn krager_matrice_partiel (matrice : &mut Vec <Vec<i32>>,liste_arete : &mut Vec<
 
 fn main() {
     
-    let n : usize = 10;
+    let n : usize = 45;
     
     // Gestionde la matrice !
     let mut matrice = vec![vec![0;n];n];// Matrice du début !
     let mut liste_arete : Vec<(i32,i32)> = Vec::new(); // Liste d'arete du début 
 
+    
+
+
     init_matrice(&mut matrice, &mut liste_arete, n);
+
+    // On crée des clones de la matrice et de la liste
+    let mut matrice2 = matrice.clone();
+    let mut liste_arete2 = liste_arete.clone();
 
     let mut matrice_res = vec![vec![0;n];n];
     let mut min = 0;
@@ -269,12 +278,21 @@ fn main() {
 
     println!("Le graphe dot avant : \n {}",dot_matrice(&matrice));
 
-    println!("Sorie de l'algorithme !!");
+    println!("Sorie de l'algorithme de krager Stein !!");
 
-    (matrice_res,min) = karger_Stein(&mut matrice, &mut liste_arete);
+    (matrice_res,min) = karger_Stein(matrice,liste_arete);
     
 
     println!("Le graphe dot après : \n {}",dot_matrice(&matrice_res));
+
+    println!("Sortie de l'algorithme iteratif ! ");
+    let mut matrice_res2 = vec![vec![0;n];n];
+    let mut min2 = 0;
+
+    (matrice_res2,min2) = karger_iter_matrice(matrice2, liste_arete2);
+
+    println!("Le graphe dot après : \n {}",dot_matrice(&matrice_res2));
+
 
 
     // Gestion de la liste d'adjcence !
