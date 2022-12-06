@@ -1,6 +1,4 @@
 //Appel des bibliothèques externes
-use rand::Rng;
-use plotters::prelude::*;
 use std::fs::File;
 use std::io::Write;
 use std::time::Duration;
@@ -27,13 +25,13 @@ fn plot_graph(i : usize, path : &str)->(){
         
 
         let start = ProcessTime::try_now().expect("Process time failed");
-        matrice::krager_matrice(&mut matrice,&mut liste_arete);
+        matrice::karger_Stein(&mut matrice,&mut liste_arete);
         let cpu_time: Duration = start.try_elapsed().expect("Process time failed");
 
         
 
 
-        file.write_all(&(format!("{} \t {:?} \n",i,cpu_time.as_micros()))[..].as_bytes());
+        file.write_all(&(format!("{} \t {:?} \n",i,cpu_time.as_micros()))[..].as_bytes()).unwrap();
     }
 }
 
@@ -44,9 +42,15 @@ fn main() {
     
     // Le main se concentre sur les appels aux fonctions de becnhmark 
 
-    let nb_sommet = 100;
+    let nb_sommet = 10;
+    let mut liste_adj:Vec<Vec<i32>> = vec![vec![];nb_sommet];
 
-    plot_graph(nb_sommet, "matrice.txt");
+    //plot_graph(nb_sommet, "matrice_Krager_Stein.txt");
+
+    let mut nombre_aret = liste_adj::initListeAdj(&mut liste_adj);
+    println!("Le nombre de sommet : {}",nombre_aret);
+    liste_adj::krager_liste_adj(&mut liste_adj,&mut  nombre_aret);
+    dot::dot_liste(&mut liste_adj);
 
 
 
