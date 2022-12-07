@@ -9,15 +9,11 @@ pub fn initListeAdj(liste_adj : &mut Vec<Vec<i32>>) -> i32{
         // On choisit un nombre d'aretes aléatoire !
         let nb_arete:i32 =rand::thread_rng().gen_range(1..liste_adj.len().try_into().unwrap()) - (liste_adj[i].len() as i32);
 
-        nombre_arete += nb_arete; // Calcull du nombre d'arete
-
-
         for _ in 0..nb_arete  {
             let mut sommet_arrive = rand::thread_rng().gen_range(0..liste_adj.len().try_into().unwrap()); // On choisit le second sommet
             // On vérifie que le sommet ne pointe pas sur lui meme et que le sommet sélectionné n'est pas déja dans la liste
             let mut iter = liste_adj[i].iter();
-            while sommet_arrive == i || (iter.find (|&&x| x == sommet_arrive.try_into().unwrap()) != None){
-                   
+            while sommet_arrive == i || (iter.find (|&&x| x == sommet_arrive.try_into().unwrap()) != None){         
                     iter = liste_adj[i].iter();
                     sommet_arrive = rand::thread_rng().gen_range(0..liste_adj.len());
             }   
@@ -25,14 +21,19 @@ pub fn initListeAdj(liste_adj : &mut Vec<Vec<i32>>) -> i32{
             liste_adj[sommet_arrive].push(i.try_into().unwrap());
         }
     }
-    nombre_arete // On retourne le nombre d'arete !
+
+    for i in 0..liste_adj.len(){
+        nombre_arete += (liste_adj[i].len()) as i32;
+    }
+
+    (nombre_arete/2) // On retourne le nombre d'arete !
 }
 
 
  // Contraction des listes d'adjacences !
  fn contraction_liste (liste_adj : &mut Vec<Vec<i32>>, sommet1 : usize, sommet2 : usize, nombre_aret : &mut i32) -> (){
 
-    // Nettoyage de la première liste O(n)
+    // Nettoyage de la première liste O(n²)
     let mut i : usize = 0;
     while i < liste_adj[sommet1].len(){
         if liste_adj[sommet1][i] == sommet2.try_into().unwrap(){
@@ -72,17 +73,24 @@ pub fn initListeAdj(liste_adj : &mut Vec<Vec<i32>>) -> i32{
 pub fn krager_liste_adj (liste_adj : &mut Vec<Vec<i32>>, nombre_aret : &mut i32)->(){     
             
     while liste_adj.len() > 2{
+
         // Choix des deux sommet à contrater !
-        let sommet1 = rand::thread_rng().gen_range(0..nombre_aret);
-
-
+        let mut arete = rand::thread_rng().gen_range(0..*nombre_aret);
+    
+        let mut sommet1 : usize = rand::thread_rng().gen_range(0.. liste_adj.len());
+        for i in 0..liste_adj.len(){
+            arete =  arete - (liste_adj[i].len()/2) as i32;
+            if arete  <= 0 {
+                sommet1 = i ;
+                break;
+            }
+        }
         
-        let indice_sommet2 =  rand::thread_rng().gen_range(0..liste_adj[sommet1].len()) as usize;
+        let indice_sommet2 =  rand::thread_rng().gen_range(0..liste_adj[sommet1].len()) as usize;      
         let sommet2 = liste_adj[sommet1][indice_sommet2] as usize;
-        
-
         // Appel de la fonction de contraction 
-        contraction_liste(liste_adj, sommet1, sommet2,nombre_aret);
+        contraction_liste(liste_adj, sommet1, sommet2, nombre_aret);
+    
     }
 
 }
