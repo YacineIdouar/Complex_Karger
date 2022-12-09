@@ -1,9 +1,15 @@
+
 use rand::Rng;
 
 // Fonction d'initialisation de la matrice d'adjacence.
 pub fn init_matrice(matrice : &mut Vec <Vec<i32>>, liste_arete : &mut Vec<(i32,i32)>, n : usize) -> () {
     for i in 0..n {
         for j in (i+1)..n {
+            // Forcer un sommet à avoir un degré 1.
+            /*if i==0{
+                matrice[i][n-1] = 1;
+                matrice[n-1][i] = 1;
+            }else{*/
             if i==j {
                 matrice[i][j] = 0;
             }else {
@@ -14,12 +20,12 @@ pub fn init_matrice(matrice : &mut Vec <Vec<i32>>, liste_arete : &mut Vec<(i32,i
                     liste_arete.push((i.try_into().unwrap(),j.try_into().unwrap()));
                 }
             }
+          }   
         }
     }
-}
 
 
-// Fonction de contraction  sur la matrice d'adjacence, Définit en mode private car à usage algorithmique.
+// Fonction de contraction  sur la matrice d'adjacence.
 fn contraction_matrice (matrice : &mut Vec <Vec<i32>>, liste_arete : &mut Vec<(i32,i32)>, sommet1 : usize, sommet2 : usize) -> (){
     // Retrait des arete de la liste des aretes 
          liste_arete.retain(|(x,y)| (!(*x==sommet2.try_into().unwrap() || *y == sommet2.try_into().unwrap())));
@@ -45,7 +51,7 @@ fn contraction_matrice (matrice : &mut Vec <Vec<i32>>, liste_arete : &mut Vec<(i
  }
 
 
- // Définiton d'une fonction size de la matrice d'adjacence pour s'adapter au choix d'implémentation
+ // Définiton d'une fonction size de la matrice d'adjacence pour s'adapter au choix d'implémentation (Les lignes supprimé sont à -1)
  pub fn taille (matrice : &Vec <Vec<i32>>)-> usize {
     let mut size = 0;
     for i in 0..matrice.len(){
@@ -57,7 +63,7 @@ fn contraction_matrice (matrice : &mut Vec <Vec<i32>>, liste_arete : &mut Vec<(i
 }
 
 
-// Fonction de krager de la matrice  
+// Fonction de karger de la matrice  
 pub fn krager_matrice (matrice : &mut Vec <Vec<i32>>,liste_arete : &mut Vec<(i32,i32)>) -> (){
     // Tant que la taille de la matrice est supérieure à 2 on réitère 
     while taille (&matrice) > 2  {
@@ -69,17 +75,17 @@ pub fn krager_matrice (matrice : &mut Vec <Vec<i32>>,liste_arete : &mut Vec<(i32
 
  // On Améliore le résultat de la fonction de karger en itérant n² sur le résultat 
  pub fn karger_iter_matrice (matrice : Vec <Vec<i32>>,liste_arete : Vec<(i32,i32)>)-> (Vec <Vec<i32>>,usize){
-    let nombre_iter = matrice.len()^2;
+
+    let nombre_iter =  matrice.len()^2;
     
     // Déclaration des valeurs de retour 
-    let mut min = liste_arete.len(); // Initialisation au nombre d'arête de la matrice
-    let mut mat_res = matrice.clone(); // Initialisation à la matrice de départ
+    let mut min = liste_arete.len(); // Initialisation arbitraire au nombre d'arête de la matrice.
+    let mut mat_res = matrice.clone(); // Initialisation arbitraire à la matrice de départ.
     
     for _ in 0..nombre_iter{
         let mut matrice2 = matrice.clone(); // Copie de la matrice 
         let mut liste_arete2  = liste_arete.clone(); // Copie de la liste d'arete
         krager_matrice(&mut matrice2,&mut liste_arete2); // Appel à la fonction de krager
-        
         // On sauvgarde la coupe minimale
         if liste_arete2.len() < min{
             min = liste_arete2.len();
@@ -105,7 +111,7 @@ pub fn  karger_Stein(matrice : &mut Vec <Vec<i32>>,liste_arete : &mut Vec<(i32,i
         let mut matrice_fin = matrice.clone();
         let mut liste_arete_fin = liste_arete.clone();
         krager_matrice(&mut matrice_fin, &mut liste_arete_fin);
-        return (matrice_fin,liste_arete_fin.len());
+        return (matrice_fin,liste_arete_fin.len()); 
     }
     
       let number_contration = (1 as f32 + taille(&matrice) as f32/1.41) as usize + 1;

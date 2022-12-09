@@ -1,6 +1,5 @@
 use std::fs::File;
 use std::io::Write;
-
 // Fonction permettant l'affichage des graphs !
 pub fn dot_matrice (matrice : &Vec <Vec<i32>>) ->() {
     let mut file = match File::create("print.gv"){
